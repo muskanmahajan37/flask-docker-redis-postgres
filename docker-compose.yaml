@@ -1,0 +1,61 @@
+version: '3'
+services:
+  api:
+    container_name: flask-api
+    build:
+      context: .
+      dockerfile: backend.dockerfile
+    entrypoint: ./entrypoint.sh
+    env_file:
+      - .env
+    ports:
+      - '5000:5000'
+    depends_on:
+      - db
+
+  db:
+    image: postgres:9.6
+    container_name: flask-postgres
+    env_file:
+      - .env
+    restart: always
+    ports:
+      - "5432:5432"
+      - "3000:5432"
+      - "8080:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data/
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: flask-pgadmin-container
+    depends_on:
+      - db
+    env_file:
+      - .env
+    restart: always
+    ports:
+    - "5050:5050"
+    volumes:
+    - pga4volume:/var/lib/pgadmin
+
+  redis:
+    image: redis
+    container_name: flask-redis
+    ports:
+    - "6379:6379"
+
+
+  nginx:
+    container_name: flask-nginx
+    build:
+      context: nginx
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+
+volumes:
+  pg_data:
+  pga4volume:
